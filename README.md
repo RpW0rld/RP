@@ -3,7 +3,7 @@
 ██████ 100%
 #
 
-Enter ur email and look away
+Enter ur email
 #
 
 
