@@ -2,11 +2,13 @@
 
 ██████ 100%
 #
+Enter ur email and look away
+
+
+
+
+
+
 BetaTest#3301
 
-
-
-
-
-Enter ur email and look away
 ▶︎ •၊၊||၊|။||||| 0:10
