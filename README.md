@@ -1,14 +1,6 @@
+RpW0rld-patch-1
 #LOGGING IN /RP ◌
 
-██████ 95%
+██████ 95% Readme
 
-#
 Enter ur email
-Cicada33.wav@gmail.com
-
-
-
-
-#BetaTest//3301//
-
-▶︎ •၊၊||၊|။||||| 0:10
