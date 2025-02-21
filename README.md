@@ -1,6 +1,6 @@
 #LOGGING IN /RP ◌
 
-██████ 100%
+██████ 95%
 
 #
 Enter ur email
