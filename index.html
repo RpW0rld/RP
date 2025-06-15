@@ -11,231 +11,351 @@
     <h3>//ᯤ </h3>
     <h4>//ᯤ </h4>
     <h5>ꄗPassword _1_4_4OI </h5>
-    <h6> <iframe style="border-radius:12px" src="https://open.spotify.com/embed/artist/11bY5s3L9c4tquvv5oqeLQ?utm_source=generator" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe> </h6>
-    <style>
+    <h6>  </h6>
+<style>
 @media screen and (max-width: 992px)  {
-  #snakeContainer {
+  #tictactoeContainer {
     display: none !important;
   }
 }
 
-#snakeContainer {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 31.25rem;
+#tictactoeContainer {
+  width: 28.125rem;
   margin: 0 auto;
 }
 
-#snakeScoreWrapper {
+table {
+  border-collapse: collapse;
+  margin: 1.25rem auto;
+  background-color: #101010;
+}
+
+td {
+  width: 9.375rem;
+  height: 9.375rem;
+  text-align: center;
+  font-size: 4.5rem;
+  border: 1px solid #333;
+  cursor: pointer;
+}
+
+#tictactoe-scoreboard {
   display: flex;
   justify-content: space-between;
   width: 100%;
   margin-top: 1rem;
 }
 
-#snakeCanvas {
-  border: 1px solid #00FF00;
-  background-color: #101010;
+#tictactoe-scoreboard span {
+  margin-right: 0.625rem;
 }
 
-#snakeScore {
-  font-size: 1rem;
+.player-symbol, .bot-symbol {
+  color: #fdd33c;
 }
 
-#snakeBestScore {
-  font-size: 1rem;
-  color: #666;
-}
-
-#snakeRestartButton {
-  font-size: 1rem;
-  padding: 0.625rem 1rem;
-  background-color: #333;
-  color: #FFF;
-  border: none;
-  cursor: pointer;
-  position: absolute;
-  display: block;
-}
-
-#snakeRestartButton:hover {
-  background-color: #666;
-}
 </style>
 
-<div id="snakeContainer">
-<canvas id="snakeCanvas" width="500" height="500"></canvas>
-<button id="snakeRestartButton" onclick="startGame()">Jouer</button>
-<div id="snakeScoreWrapper">
-<div id="snakeScore">Score : 0</div>
-<div id="snakeBestScore">Meilleur Score : 0</div>
+<div id="tictactoeContainer">
+<table>
+<tr>
+<td id="tictactoe-cell-0-0"></td>
+<td id="tictactoe-cell-0-1"></td>
+<td id="tictactoe-cell-0-2"></td>
+</tr>
+<tr>
+<td id="tictactoe-cell-1-0"></td>
+<td id="tictactoe-cell-1-1"></td>
+<td id="tictactoe-cell-1-2"></td>
+</tr>
+<tr>
+<td id="tictactoe-cell-2-0"></td>
+<td id="tictactoe-cell-2-1"></td>
+<td id="tictactoe-cell-2-2"></td>
+</tr>
+</table>
+<div id="tictactoe-scoreboard">
+<span id="tictactoe-player-score">Joueur : 0</span>
+<span id="tictactoe-draw-score">Matchs nuls : 0</span>
+<span id="tictactoe-bot-score">Bot : 0</span>
 </div>
 </div>
 
 <script>
-// Récupérer le canvas et son contexte
-const canvas = document.getElementById("snakeCanvas");
-const context = canvas.getContext("2d");
+// Variable pour suivre l'état du tour (true = tour du joueur, false = tour du bot)
+let tictactoePlayerTurnFlag = true;
 
-// Taille d'une cellule du jeu
-const cellSize = 20;
+// Tableau représentant la grille du jeu
+let tictactoeBoard = [
+["", "", ""],
+["", "", ""],
+["", "", ""]
+];
 
-// Initialiser la position du serpent et sa direction
-let snake = [{ x: 10, y: 10 }];
-let direction = "right";
+// Symboles utilisés pour les joueurs et le bot
+const tictactoePlayerSymbol = "X";
+const tictactoeBotSymbol = "O";
 
-// Initialiser la position de la nourriture
-let food = { x: 5, y: 5 };
+// Compteurs de victoires du joueur, des matchs nuls et du bot
+let tictactoePlayerWins = 0;
+let tictactoeDraws = 0;
+let tictactoeBotWins = 0;
 
-// Initialiser le score
-let score = 0;
-let bestScore = 0;
-
-// Variable pour stocker la boucle de jeu
-let gameLoop;
-
-// Fonction pour dessiner le serpent
-function drawSnake() {
-  context.fillStyle = "#00FF00";
-  snake.forEach((segment) => {
-    context.fillRect(segment.x * cellSize, segment.y * cellSize, cellSize, cellSize);
-  });
-}
-
-// Fonction pour dessiner la nourriture
-function drawFood() {
-  context.fillStyle = "#FF0000";
-  context.fillRect(food.x * cellSize, food.y * cellSize, cellSize, cellSize);
-}
-
-// Fonction pour dessiner le score
-function drawScore() {
-  document.getElementById("snakeScore").textContent = `Score : ${score}`;
-  document.getElementById("snakeBestScore").textContent = `Meilleur Score : ${bestScore}`;
-}
-
-// Fonction pour mettre à jour le jeu à chaque frame
-function update() {
-  // Effacer le canvas
-  context.clearRect(0, 0, canvas.width, canvas.height);
-  
-  // Mettre à jour la position du serpent en fonction de la direction
-  const head = { x: snake[0].x, y: snake[0].y };
-  switch (direction) {
-    case "up":
-    head.y--;
-    break;
-    case "down":
-    head.y++;
-    break;
-    case "left":
-    head.x--;
-    break;
-    case "right":
-    head.x++;
-    break;
-  }
-  snake.unshift(head);
-  
-  // Vérifier si le serpent a mangé la nourriture
-  if (head.x === food.x && head.y === food.y) {
-    // Générer une nouvelle position pour la nourriture
-    food.x = Math.floor(Math.random() * canvas.width / cellSize);
-    food.y = Math.floor(Math.random() * canvas.height / cellSize);
-    
-    // Augmenter le score
-    score++;
-    
-    // Mettre à jour le meilleur score si nécessaire
-    if (score > bestScore) {
-      bestScore = score;
+// Fonction pour afficher la grille du jeu
+function tictactoeDisplayBoard() {
+  for (let i = 0; i < 3; i++) {
+    for (let j = 0; j < 3; j++) {
+      const cell = document.getElementById(`tictactoe-cell-${i}-${j}`);
+      cell.textContent = tictactoeBoard[i][j];
+      
+      // Ajouter la classe appropriée en fonction du symbole
+      if (tictactoeBoard[i][j] === tictactoePlayerSymbol) {
+        cell.classList.add("player-symbol");
+      } else if (tictactoeBoard[i][j] === tictactoeBotSymbol) {
+        cell.classList.add("bot-symbol");
+      }
     }
-  } else {
-    // Supprimer la dernière cellule du serpent s'il n'a pas mangé de nourriture
-    snake.pop();
   }
-  
-  // Vérifier si le serpent a atteint les bords du canvas ou s'est mordu la queue
-  if (
-  head.x < 0 ||
-  head.y < 0 ||
-  head.x >= canvas.width / cellSize ||
-  head.y >= canvas.height / cellSize ||
-  hasSelfCollision()
-  ) {
-    // Arrêter le jeu
-    clearInterval(gameLoop);
-    // Afficher le score final
-    alert(`Game Over! Votre score est de ${score}`);
-    
-    // Afficher le bouton de redémarrage
-    document.getElementById("snakeRestartButton").style.display = "block";
+}
+
+// Ajouter les gestionnaires d'événements de clic une seule fois, au chargement de la page
+for (let i = 0; i < 3; i++) {
+  for (let j = 0; j < 3; j++) {
+    const cell = document.getElementById(`tictactoe-cell-${i}-${j}`);
+    cell.addEventListener("click", () => {
+      tictactoePlayerTurn(i, j);
+    });
   }
-  
-  // Dessiner le serpent, la nourriture et le score
-  drawSnake();
-  drawFood();
-  drawScore();
 }
 
 
-// Fonction pour vérifier si le serpent s'est mordu la queue
-function hasSelfCollision() {
-  const head = snake[0];
-  for (let i = 1; i < snake.length; i++) {
-    if (snake[i].x === head.x && snake[i].y === head.y) {
+// Fonction pour mettre à jour le scoreboard
+function tictactoeUpdateScoreboard() {
+  document.getElementById("tictactoe-player-score").textContent = `Joueur : ${tictactoePlayerWins}`;
+  document.getElementById("tictactoe-draw-score").textContent = `Matchs nuls : ${tictactoeDraws}`;
+  document.getElementById("tictactoe-bot-score").textContent = `Bot : ${tictactoeBotWins}`;
+}
+
+// Fonction pour vérifier si un joueur a gagné
+function tictactoeCheckWinner(symbol) {
+  // Vérification des lignes
+  for (let i = 0; i < 3; i++) {
+    if (
+    tictactoeBoard[i][0] === symbol &&
+    tictactoeBoard[i][1] === symbol &&
+    tictactoeBoard[i][2] === symbol
+    ) {
       return true;
     }
   }
+  
+  // Vérification des colonnes
+  for (let j = 0; j < 3; j++) {
+    if (
+    tictactoeBoard[0][j] === symbol &&
+    tictactoeBoard[1][j] === symbol &&
+    tictactoeBoard[2][j] === symbol
+    ) {
+      return true;
+    }
+  }
+  
+  // Vérification des diagonales
+  if (
+  tictactoeBoard[0][0] === symbol &&
+  tictactoeBoard[1][1] === symbol &&
+  tictactoeBoard[2][2] === symbol
+  ) {
+    return true;
+  }
+  if (
+  tictactoeBoard[0][2] === symbol &&
+  tictactoeBoard[1][1] === symbol &&
+  tictactoeBoard[2][0] === symbol
+  ) {
+    return true;
+  }
+  
   return false;
 }
 
-// Fonction pour gérer les événements de touche
-function handleKeyPress(event) {
-  // Mettre à jour la direction en fonction de la touche pressée
-  switch (event.key) {
-    case "ArrowUp":
-    if (direction !== "down") {
-      direction = "up";
+// Fonction pour vérifier si la grille est complètement remplie (match nul)
+function tictactoeCheckDraw() {
+  for (let i = 0; i < 3; i++) {
+    for (let j = 0; j < 3; j++) {
+      if (tictactoeBoard[i][j] === "") {
+        return false;
+      }
     }
-    break;
-    case "ArrowDown":
-    if (direction !== "up") {
-      direction = "down";
+  }
+  return true;
+}
+
+// Fonction pour le tour du joueur
+function tictactoePlayerTurn(row, col) {
+  if (tictactoePlayerTurnFlag && tictactoeBoard[row][col] === "") {
+    tictactoeBoard[row][col] = tictactoePlayerSymbol;
+    tictactoeDisplayBoard();
+    
+    if (tictactoeCheckWinner(tictactoePlayerSymbol)) {
+      setTimeout(() => {
+        alert("Tu as gagné !");
+        tictactoePlayerWins++;
+        tictactoeUpdateScoreboard();
+        tictactoeResetGame();
+      }, 100);
+    } else if (tictactoeCheckDraw()) {
+      setTimeout(() => {
+        alert("Match Nul !");
+        tictactoeDraws++;
+        tictactoeUpdateScoreboard();
+        tictactoeResetGame();
+      }, 100);
+    } else {
+      // Switch the turn to the bot
+      tictactoePlayerTurnFlag = false;
+      setTimeout(tictactoeBotTurn, 500);
     }
-    break;
-    case "ArrowLeft":
-    if (direction !== "right") {
-      direction = "left";
-    }
-    break;
-    case "ArrowRight":
-    if (direction !== "left") {
-      direction = "right";
-    }
-    break;
   }
 }
 
-// Fonction pour démarrer le jeu
-function startGame() {
-  // Réinitialiser les variables
-  snake = [{ x: 10, y: 10 }];
-  direction = "right";
-  score = 0;
+// Fonction pour le tour du bot
+function tictactoeBotTurn() {
   
-  // Masquer le bouton de redémarrage
-  document.getElementById("snakeRestartButton").style.display = "none";
+  // Vérifier si le jeu est déjà terminé
+  if (tictactoeCheckWinner(tictactoePlayerSymbol) || tictactoeCheckWinner(tictactoeBotSymbol) || tictactoeCheckDraw()) {
+    return;
+  }
   
-  // Démarrer la boucle de jeu
-  gameLoop = setInterval(update, 1000 / 8);
+  let bestScore = -Infinity;
+  let bestMove;
+  
+  // Parcourir toutes les cellules disponibles
+  for (let i = 0; i < 3; i++) {
+    for (let j = 0; j < 3; j++) {
+      if (tictactoeBoard[i][j] === "") {
+        // Effectuer un mouvement temporaire pour évaluer son score
+        tictactoeBoard[i][j] = tictactoeBotSymbol;
+        
+        // Ajouter une logique de chance pour faire un mauvais coup
+        if (Math.random() < 0.01) {
+          // Mauvais coup : Choisir une cellule aléatoire parmi les disponbiles
+          bestMove = { row: i, col: j };
+        } else {
+          // Bon coup : Utiliser l'algorithme minimax pour trouver le meilleur mouvement
+          let score = tictactoeMinimax(tictactoeBoard, 0, false);
+          
+          // Mettre à jour le meilleur score et le meilleur mouvement
+          if (score > bestScore) {
+            bestScore = score;
+            bestMove = { row: i, col: j };
+          }
+        }
+        
+        tictactoeBoard[i][j] = ""; // Annuler le mouvement temporaire
+      }
+    }
+  }
+  
+  // Effectuer le meilleur mouvement
+  const { row, col } = bestMove;
+  tictactoeBoard[row][col] = tictactoeBotSymbol;
+  tictactoeDisplayBoard();
+  
+  if (tictactoeCheckWinner(tictactoeBotSymbol)) {
+    setTimeout(() => {
+      alert("Le bot a gagné !");
+      tictactoeBotWins++;
+      tictactoeUpdateScoreboard();
+      tictactoeResetGame();
+    }, 100);
+  } else if (tictactoeCheckDraw()) {
+    setTimeout(() => {
+      alert("Match nul !");
+      tictactoeDraws++;
+      tictactoeUpdateScoreboard();
+      tictactoeResetGame();
+    }, 100);
+  } else {
+    // Passer le tour au joueur
+    tictactoePlayerTurnFlag = true;
+  }
 }
 
-// Écouter les événements de touche
-document.addEventListener("keydown", handleKeyPress);
+// Fonction récursive du Minimax avec élagage alpha-bêta
+function tictactoeMinimax(board, depth, isMaximizingPlayer) {
+  let score = tictactoeEvaluateState();
+  
+  if (score !== undefined) {
+    return score;
+  }
+  
+  if (isMaximizingPlayer) {
+    let bestScore = -Infinity;
+    
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        if (board[i][j] === "") {
+          board[i][j] = tictactoeBotSymbol;
+          let score = tictactoeMinimax(board, depth + 1, false);
+          board[i][j] = "";
+          bestScore = Math.max(score, bestScore);
+        }
+      }
+    }
+    
+    return bestScore;
+  } else {
+    let bestScore = Infinity;
+    
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        if (board[i][j] === "") {
+          board[i][j] = tictactoePlayerSymbol;
+          let score = tictactoeMinimax(board, depth + 1, true);
+          board[i][j] = "";
+          bestScore = Math.min(score, bestScore);
+        }
+      }
+    }
+    
+    return bestScore;
+  }
+}
+
+// Fonction pour évaluer l'état actuel du jeu
+function tictactoeEvaluateState() {
+  if (tictactoeCheckWinner(tictactoePlayerSymbol)) {
+    return -1;
+  } else if (tictactoeCheckWinner(tictactoeBotSymbol)) {
+    return 1;
+  } else if (tictactoeCheckDraw()) {
+    return 0;
+  } else {
+    return undefined;
+  }
+}
+
+// Fonction pour réinitialiser le jeu
+function tictactoeResetGame() {
+  tictactoeBoard = [
+  ["", "", ""],
+  ["", "", ""],
+  ["", "", ""]
+  ];
+  tictactoeDisplayBoard();
+  tictactoePlayerTurnFlag = true; // Réinitialiser le tour du joueur à true
+}
+
+// Fonction pour initialiser le jeu
+function tictactoeStartGame() {
+  tictactoeDisplayBoard();
+  tictactoeUpdateScoreboard();
+}
+
+// Appel à la fonction d'initialisation du jeu au chargement de la page
+tictactoeStartGame();
+
 </script>
 </body>
 </html>
